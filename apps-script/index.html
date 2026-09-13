@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nueva Aplicación</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 24px; color: #333; }
+    .card { background: white; border-radius: 12px; padding: 24px; max-width: 620px; margin: 0 auto; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; color: #111; }
+    .subtitle { font-size: 13px; color: #888; margin-bottom: 20px; }
+    .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #aaa; margin: 20px 0 12px; }
+    .divider { border: none; border-top: 1px solid #eee; margin: 16px 0; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+    label { font-size: 12px; color: #666; }
+    input, select, textarea { padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; width: 100%; outline: none; transition: border 0.2s; font-family: Arial, sans-serif; background: white; }
+    input:focus, select:focus, textarea:focus { border-color: #1a73e8; }
+    textarea { resize: vertical; }
+    .highlight { border-color: #1a73e8 !important; background: #f0f7ff !important; }
+
+    .btn-primary { background: #1a73e8; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; padding: 9px 18px; transition: background 0.2s; }
+    .btn-primary:hover { background: #1558b0; }
+    .btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+    .btn-secondary { background: #f1f3f4; color: #333; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; padding: 9px 18px; transition: background 0.2s; }
+    .btn-secondary:hover { background: #e2e4e6; }
+    .btn-secondary:disabled { background: #f1f3f4; color: #bbb; cursor: not-allowed; }
+    .btn-full { width: 100%; padding: 11px; font-size: 14px; }
+
+    .analyze-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 4px; }
+    .analyze-row button { white-space: nowrap; flex-shrink: 0; }
+
+    .cv-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .cv-en { background: #e8f0fe; color: #1a73e8; }
+    .cv-es { background: #e6f4ea; color: #1e7e34; }
+
+    .cover-toggle-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px; margin-bottom: 12px; }
+    .cover-toggle-row p { font-size: 13px; color: #8a6500; flex: 1; margin: 0; }
+
+    .cover-box { background: #f8fbff; border: 1px solid #c5d8fc; border-radius: 10px; padding: 16px; margin-bottom: 12px; display: none; }
+    .cover-box .cover-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .cover-preview { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 13px; line-height: 1.6; color: #333; min-height: 80px; white-space: pre-wrap; display: none; margin-top: 10px; }
+
+    #status { display: none; margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-size: 13px; text-align: center; }
+    .success { background: #e6f4ea; color: #1e7e34; border: 1px solid #b7dfbf; }
+    .error   { background: #fce8e6; color: #c0392b; border: 1px solid #f5c6cb; }
+    .info    { background: #e8f0fe; color: #1a73e8; border: 1px solid #c5d8fc; }
+    .req { color: #c0392b; }
+    @media (max-width: 480px) { .grid-2 { grid-template-columns: 1fr; } .analyze-row { flex-direction: column; } .analyze-row button { width: 100%; } }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h2>Nueva aplicación de empleo</h2>
+  <p class="subtitle">Ingresa los datos de la vacante y deja que Gemini complete el resto</p>
+
+  <p class="section-label">Datos básicos</p>
+
+  <div class="grid-2">
+    <div class="field">
+      <label>Empresa <span class="req">*</span></label>
+      <input id="company" type="text" placeholder="Ej: Google" />
+    </div>
+    <div class="field">
+      <label>Cargo <span class="req">*</span></label>
+      <input id="position" type="text" placeholder="Ej: Data Scientist Jr" />
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Link de la vacante <span class="req">*</span></label>
+    <input id="url" type="url" placeholder="https://linkedin.com/jobs/... u otro portal" />
+  </div>
+
+  <div class="field">
+    <div class="analyze-row">
+      <div style="flex:1;">
+        <label>Descripción de la vacante <span class="req">*</span></label>
+      </div>
+      <button class="btn-primary" id="btn-analyze" onclick="analyzeJob()">✨ Analizar</button>
+    </div>
+    <textarea id="description" rows="6" placeholder="Pega aquí el texto completo de la vacante (cópialo desde LinkedIn u otro portal)..."></textarea>
+  </div>
+
+  <hr class="divider">
+  <p class="section-label">Campos autocompletados</p>
+
+  <div class="grid-2">
+    <div class="field">
+      <label>Persona de contacto</label>
+      <input id="contact" type="text" placeholder="Nombre del reclutador" />
+    </div>
+    <div class="field">
+      <label>Fecha de aplicación <span class="req">*</span></label>
+      <input id="date" type="date" />
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="field">
+      <label>Etapa</label>
+      <select id="stage">
+        <option value="">— Sin etapa —</option>
+        <option value="Aplicado">Aplicado</option>
+        <option value="En revisión">En revisión</option>
+        <option value="Entrevista">Entrevista</option>
+        <option value="Rechazado">Rechazado</option>
+        <option value="Oferta">Oferta</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Tipo</label>
+      <select id="type">
+        <option value="LinkedIn">LinkedIn</option>
+        <option value="Job Board">Job Board</option>
+        <option value="Referido">Referido</option>
+        <option value="Sitio web empresa">Sitio web empresa</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>CV seleccionado</label>
+    <div style="display:flex; align-items:center; gap:8px; padding:6px 0;">
+      <span id="cv-label" style="font-size:13px;color:#aaa;">— Analiza la vacante para detectar idioma —</span>
+      <span id="cv-badge" style="display:none;" class="cv-badge"></span>
+    </div>
+    <input id="resume" type="url" placeholder="Link al CV en Drive" />
+  </div>
+
+  <div class="field">
+    <label>Mensaje enviado / Notas</label>
+    <textarea id="message" rows="3" placeholder="Se generará automáticamente al analizar..."></textarea>
+  </div>
+
+  <div class="field">
+    <label>Próximo deadline</label>
+    <input id="deadline" type="date" />
+  </div>
+
+  <hr class="divider">
+  <p class="section-label">Cover Letter</p>
+
+  <div class="cover-toggle-row" id="cover-toggle-row">
+    <p>¿Esta vacante requiere cover letter?</p>
+    <button class="btn-primary" onclick="showCoverSection()">✍️ Sí, crear cover letter</button>
+  </div>
+
+  <div class="cover-box" id="cover-box">
+    <label style="font-size:13px;font-weight:600;color:#1a73e8;display:block;margin-bottom:8px;">Detalles adicionales para la cover letter</label>
+    <textarea id="cover-details" rows="5" placeholder="Pega aquí cualquier detalle extra: requisitos específicos, cultura de la empresa, por qué te interesa este rol, nombre del hiring manager si lo tienes..."></textarea>
+    <div class="cover-actions">
+      <button class="btn-primary" id="btn-gen" onclick="generateCover()">✍️ Generar cover letter</button>
+      <button class="btn-secondary" id="btn-regen" onclick="generateCover()" style="display:none;">🔄 Regenerar</button>
+    </div>
+    <div class="cover-preview" id="cover-preview"></div>
+  </div>
+
+  <div class="field" style="margin-top:12px;">
+    <label>Link Cover Letter en Drive</label>
+    <input id="cover" type="text" placeholder="Se completará automáticamente al generar la cover letter" />
+  </div>
+
+  <button class="btn-primary btn-full" id="btn-submit" onclick="submitForm()" style="margin-top:8px;">Agregar al tracker</button>
+  <div id="status"></div>
+</div>
+
+<script>
+  document.getElementById('date').valueAsDate = new Date();
+
+  function analyzeJob() {
+    const company     = document.getElementById('company').value.trim();
+    const position    = document.getElementById('position').value.trim();
+    const description = document.getElementById('description').value.trim();
+
+    if (!company || !position || !description) {
+      show('Completa Empresa, Cargo y Descripción antes de analizar.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-analyze');
+    btn.disabled = true;
+    btn.textContent = '⏳ Analizando...';
+    show('Gemini está analizando la vacante...', 'info');
+
+    google.script.run
+      .withSuccessHandler(function(data) {
+        if (data.contact) setField('contact', data.contact);
+        if (data.stage)   setField('stage', data.stage);
+        if (data.type)    document.getElementById('type').value = data.type;
+        if (data.message) setField('message', data.message);
+
+        if (data.resumeLink) {
+          setField('resume', data.resumeLink);
+          const badge = document.getElementById('cv-badge');
+          const label = document.getElementById('cv-label');
+          badge.style.display = 'inline-flex';
+          if (data.language === 'en') {
+            badge.textContent = '🇺🇸 CV en inglés';
+            badge.className = 'cv-badge cv-en';
+            label.textContent = 'Vacante en inglés detectada';
+          } else {
+            badge.textContent = '🇨🇴 CV en español';
+            badge.className = 'cv-badge cv-es';
+            label.textContent = 'Vacante en español detectada';
+          }
+        }
+
+        show('✓ Campos completados. Revisa y ajusta si es necesario.', 'success');
+        btn.disabled = false;
+        btn.textContent = '✨ Analizar';
+      })
+      .withFailureHandler(function(err) {
+        show('Error: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = '✨ Analizar';
+      })
+      .analyzeJob(company, position, description);
+  }
+
+  function showCoverSection() {
+    document.getElementById('cover-toggle-row').style.display = 'none';
+    document.getElementById('cover-box').style.display = 'block';
+  }
+
+  function generateCover() {
+    const company     = document.getElementById('company').value.trim();
+    const position    = document.getElementById('position').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const extra       = document.getElementById('cover-details').value.trim();
+
+    if (!company || !position) {
+      show('Completa Empresa y Cargo antes de generar la cover letter.', 'error');
+      return;
+    }
+
+    const fullDesc = description + (extra ? '\n\nDetalles adicionales:\n' + extra : '');
+
+    const btnGen   = document.getElementById('btn-gen');
+    const btnRegen = document.getElementById('btn-regen');
+    btnGen.disabled = true;
+    btnGen.textContent = '⏳ Generando...';
+    btnRegen.disabled = true;
+    show('Gemini está redactando tu cover letter...', 'info');
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        document.getElementById('cover').value = result.url;
+        setField('cover', result.url);
+        const preview = document.getElementById('cover-preview');
+        preview.textContent = result.text;
+        preview.style.display = 'block';
+        btnGen.style.display = 'none';
+        btnRegen.style.display = 'inline-block';
+        btnRegen.disabled = false;
+        show('✓ Cover letter generada y guardada en tu Drive en la carpeta "Cover Letters".', 'success');
+      })
+      .withFailureHandler(function(err) {
+        show('Error generando cover letter: ' + err.message, 'error');
+        btnGen.disabled = false;
+        btnGen.textContent = '✍️ Generar cover letter';
+        btnRegen.disabled = false;
+      })
+      .generateCoverLetter(company, position, fullDesc);
+  }
+
+  function submitForm() {
+    const company  = document.getElementById('company').value.trim();
+    const position = document.getElementById('position').value.trim();
+    const date     = document.getElementById('date').value;
+    if (!company || !position || !date) {
+      show('Completa los campos obligatorios: Empresa, Cargo y Fecha.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    google.script.run
+      .withSuccessHandler(function() {
+        show('✓ Aplicación agregada exitosamente al tracker.', 'success');
+        resetForm();
+        btn.disabled = false;
+        btn.textContent = 'Agregar al tracker';
+      })
+      .withFailureHandler(function(err) {
+        show('Error: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Agregar al tracker';
+      })
+      .addRow({
+        company,  position, date,
+        contact:  document.getElementById('contact').value.trim(),
+        stage:    document.getElementById('stage').value,
+        type:     document.getElementById('type').value,
+        url:      document.getElementById('url').value.trim(),
+        resume:   document.getElementById('resume').value.trim(),
+        cover:    document.getElementById('cover').value.trim(),
+        deadline: document.getElementById('deadline').value,
+        message:  document.getElementById('message').value.trim()
+      });
+  }
+
+  function setField(id, val) {
+    const el = document.getElementById(id);
+    el.value = val;
+    el.classList.add('highlight');
+    setTimeout(() => el.classList.remove('highlight'), 2000);
+  }
+
+  function resetForm() {
+    ['company','position','url','description','contact','resume','message','cover','cover-details','deadline'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('stage').value = '';
+    document.getElementById('type').value = 'LinkedIn';
+    document.getElementById('date').valueAsDate = new Date();
+    document.getElementById('cv-label').textContent = '— Analiza la vacante para detectar idioma —';
+    document.getElementById('cv-badge').style.display = 'none';
+    document.getElementById('cover-toggle-row').style.display = 'flex';
+    document.getElementById('cover-box').style.display = 'none';
+    document.getElementById('cover-preview').style.display = 'none';
+    document.getElementById('cover-preview').textContent = '';
+    document.getElementById('btn-gen').style.display = 'inline-block';
+    document.getElementById('btn-gen').disabled = false;
+    document.getElementById('btn-gen').textContent = '✍️ Generar cover letter';
+    document.getElementById('btn-regen').style.display = 'none';
+  }
+
+  function show(msg, type) {
+    const el = document.getElementById('status');
+    el.style.display = 'block';
+    el.textContent = msg;
+    el.className = type;
+  }
+</script>
+</body>
+</html>

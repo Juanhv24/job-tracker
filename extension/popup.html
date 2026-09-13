@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; width: 380px; padding: 16px; background: #fff; color: #333; }
+    h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: #111; }
+    .subtitle { font-size: 12px; color: #888; margin-bottom: 14px; }
+    .field { display: flex; flex-direction: column; gap: 3px; margin-bottom: 10px; }
+    label { font-size: 11px; color: #666; }
+    input, select, textarea { padding: 7px 9px; border: 1px solid #ddd; border-radius: 7px; font-size: 13px; width: 100%; outline: none; font-family: Arial, sans-serif; background: white; }
+    input:focus, select:focus, textarea:focus { border-color: #1a73e8; }
+    textarea { resize: none; }
+    .highlight { border-color: #1a73e8 !important; background: #f0f7ff !important; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .btn { width: 100%; padding: 9px; border: none; border-radius: 7px; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 6px; transition: background 0.2s; }
+    .btn-blue { background: #1a73e8; color: white; }
+    .btn-blue:hover { background: #1558b0; }
+    .btn-blue:disabled { background: #aaa; cursor: not-allowed; }
+    .btn-gray { background: #f1f3f4; color: #333; }
+    .btn-gray:hover { background: #e2e4e6; }
+    .btn-gray:disabled { color: #bbb; cursor: not-allowed; }
+    .cv-badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-left: 6px; }
+    .lang-active { background: #1a73e8 !important; color: white !important; }
+    .cv-en { background: #e8f0fe; color: #1a73e8; }
+    .cv-es { background: #e6f4ea; color: #1e7e34; }
+    .cover-box { background: #f8fbff; border: 1px solid #c5d8fc; border-radius: 8px; padding: 12px; margin: 8px 0; display: none; }
+    .cover-box label { font-size: 12px; font-weight: 700; color: #1a73e8; display: block; margin-bottom: 6px; }
+    .cover-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .cover-actions .btn { margin-top: 0; }
+    .cover-preview { background: white; border: 1px solid #ddd; border-radius: 7px; padding: 10px; font-size: 11px; line-height: 1.6; color: #333; max-height: 120px; overflow-y: auto; white-space: pre-wrap; display: none; margin-top: 8px; }
+    .divider { border: none; border-top: 1px solid #eee; margin: 10px 0; }
+    #status { display: none; margin-top: 8px; padding: 8px 12px; border-radius: 7px; font-size: 12px; text-align: center; }
+    .success { background: #e6f4ea; color: #1e7e34; border: 1px solid #b7dfbf; }
+    .error   { background: #fce8e6; color: #c0392b; border: 1px solid #f5c6cb; }
+    .info    { background: #e8f0fe; color: #1a73e8; border: 1px solid #c5d8fc; }
+    .not-linkedin { text-align: center; padding: 20px; }
+    .not-linkedin p { font-size: 13px; color: #888; margin-top: 8px; }
+    .req { color: #c0392b; }
+    .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .settings-link { font-size: 11px; color: #1a73e8; cursor: pointer; text-decoration: underline; background: none; border: none; padding: 0; }
+  </style>
+</head>
+<body>
+<div id="main-view">
+  <div class="top-row">
+    <div>
+      <h2>💼 Job Tracker</h2>
+      <p class="subtitle">Captura esta vacante de LinkedIn</p>
+    </div>
+    <button class="settings-link" id="btn-settings">⚙️ Config</button>
+  </div>
+
+  <button class="btn btn-blue" id="btn-extract">🔍 Extraer datos de esta vacante</button>
+
+  <div id="form-section" style="display:none; margin-top:12px;">
+    <hr class="divider">
+    <div class="grid-2">
+      <div class="field">
+        <label>Empresa <span class="req">*</span></label>
+        <input id="company" type="text" placeholder="Ej: Google" />
+      </div>
+      <div class="field">
+        <label>Cargo <span class="req">*</span></label>
+        <input id="position" type="text" placeholder="Ej: Data Scientist" />
+      </div>
+    </div>
+    <div class="field">
+      <label>URL</label>
+      <input id="url" type="text" readonly style="color:#888;font-size:11px;" />
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Etapa</label>
+        <select id="stage">
+          <option value="Aplicado">Aplicado</option>
+          <option value="En revisión">En revisión</option>
+          <option value="Entrevista">Entrevista</option>
+          <option value="Rechazado">Rechazado</option>
+          <option value="Oferta">Oferta</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Fecha <span class="req">*</span></label>
+        <input id="date" type="date" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Idioma de la vacante (elige el CV y el idioma del mensaje)</label>
+      <div style="display:flex; gap:6px; padding:3px 0;">
+        <button class="btn btn-gray lang-btn" id="btn-lang-es" style="flex:1; margin-top:0; font-size:12px; padding:7px;">🇨🇴 Español</button>
+        <button class="btn btn-gray lang-btn" id="btn-lang-en" style="flex:1; margin-top:0; font-size:12px; padding:7px;">🇺🇸 English</button>
+      </div>
+      <input id="resume" type="text" readonly style="color:#888;font-size:11px; margin-top:4px;" placeholder="CV según el idioma elegido" />
+    </div>
+    <div class="field">
+      <label>Contacto</label>
+      <input id="contact" type="text" placeholder="Nombre del reclutador" />
+    </div>
+    <div class="field">
+      <label>Mensaje para el reclutador</label>
+      <textarea id="message" rows="3" placeholder="Se generará automáticamente..."></textarea>
+    </div>
+    <div class="field">
+      <label>Deadline</label>
+      <input id="deadline" type="date" />
+    </div>
+    <hr class="divider">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+      <span style="font-size:12px; color:#555;">¿Requiere cover letter?</span>
+      <button class="btn btn-gray" id="btn-show-cover" style="width:auto; padding:5px 12px; margin-top:0; font-size:12px;">✍️ Sí, crear</button>
+    </div>
+    <div class="cover-box" id="cover-box">
+      <label>Detalles extra para la cover letter</label>
+      <textarea id="cover-details" rows="3" placeholder="Por qué te interesa, cultura empresa, nombre hiring manager..."></textarea>
+      <div class="cover-actions">
+        <button class="btn btn-blue" id="btn-gen" style="font-size:12px;">✍️ Generar</button>
+        <button class="btn btn-gray" id="btn-regen" style="font-size:12px; display:none;">🔄 Regenerar</button>
+      </div>
+      <div class="cover-preview" id="cover-preview"></div>
+    </div>
+    <div class="field" style="margin-top:8px;">
+      <label>Link Cover Letter (Drive)</label>
+      <input id="cover" type="text" placeholder="Se completa al generar la cover letter" style="font-size:11px;" />
+    </div>
+    <button class="btn btn-blue" id="btn-submit">✅ Agregar al tracker</button>
+  </div>
+  <div id="status"></div>
+</div>
+
+<div id="settings-view" style="display:none;">
+  <div class="top-row">
+    <h2>⚙️ Configuración</h2>
+    <button class="settings-link" id="btn-back">← Volver</button>
+  </div>
+  <div class="field">
+    <label>Google Apps Script URL</label>
+    <input id="s-script" type="text" placeholder="https://script.google.com/macros/s/..." />
+  </div>
+  <button class="btn btn-blue" id="btn-save-settings">💾 Guardar</button>
+  <div id="settings-status" style="display:none; margin-top:8px; padding:8px; border-radius:7px; font-size:12px; text-align:center; background:#e6f4ea; color:#1e7e34;"></div>
+</div>
+
+<div id="not-linkedin" style="display:none;" class="not-linkedin">
+  <div style="font-size:32px;">🔍</div>
+  <p>Abre una vacante en LinkedIn<br>para usar esta extensión</p>
+  <p style="font-size:11px; margin-top:8px; color:#aaa;">linkedin.com/jobs/view/...</p>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
